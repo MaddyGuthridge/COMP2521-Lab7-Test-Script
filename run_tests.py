@@ -102,7 +102,7 @@ def test(args, test_progs):
             arg = args[arg_num]
             arg_num += 1
             
-            print(f"{S_TAB}{S_TAB}{C_ARGS}{arg_num}{C_NORMAL}: Running test {C_COMMAND}{arg}{C_NORMAL}")
+            print(f"{S_TAB}{S_TAB}{C_ARGS}{arg_num}{C_NORMAL}: Running test {C_COMMAND}{prog} {arg}{C_NORMAL}")
             
             # If we're running all tests
             if arg ==  "all":
