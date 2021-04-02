@@ -93,13 +93,15 @@ def compile(args):
 def test(args, test_progs):
     print(f"Running tests...")
     
+    args_to_run = args.copy()
+    
     for prog in test_progs:
         print(f"{S_TAB}Testing {C_COMMAND}{prog}{C_NORMAL}")
         
         arg_num = 0
-        while arg_num < len(args):
+        while arg_num < len(args_to_run):
             tab = S_TAB * 3
-            arg = args[arg_num]
+            arg = args_to_run[arg_num]
             arg_num += 1
             
             print(f"{S_TAB}{S_TAB}{C_ARGS}{arg_num}{C_NORMAL}: Running test {C_COMMAND}{prog} {arg}{C_NORMAL}")
@@ -107,7 +109,7 @@ def test(args, test_progs):
             # If we're running all tests
             if arg ==  "all":
                 print(f"{tab}Adding {C_STRING}all{C_NORMAL} provided tests\n")
-                args += TEST_FILES
+                args_to_run = args + TEST_FILES
                 continue
             
             # Run the test
