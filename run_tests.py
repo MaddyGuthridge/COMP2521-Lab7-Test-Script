@@ -63,8 +63,13 @@ def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
 
 def runWithOutput(command, indentation, output_notice=False):
     
+    # Open a new terminal layer
+    # Thanks, https://stackoverflow.com/a/11024208/6335363
+    os.system("tput smcup")
     # Run command, redirecting output to files
-    result = os.system(f"{command} 2> {ERROR_FILE} > {OUTPUT_FILE}")
+    result = os.system(f"stdbuf --output=L {command} 2> {ERROR_FILE} 1| tee {OUTPUT_FILE}")
+    # Close that terminal layer
+    os.system("tput rmcup")
     
     # Generate indentation
     tab = S_TAB * indentation
