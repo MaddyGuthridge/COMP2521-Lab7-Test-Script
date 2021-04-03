@@ -30,6 +30,8 @@ C_OUTPUT = Fore.YELLOW
 
 S_TAB = " " * 4
 
+CLEAR_SCREEN_ANSI = "[1;1H[2J"
+
 def printUsage():
     print(f"Usage for {C_COMMAND}{sys.argv[0]}{C_NORMAL}:")
     print(f"{S_TAB}{C_COMMAND}{sys.argv[0]} {C_NORMAL}-c [solvers to compile] -t [mazes to test]\n")
@@ -42,6 +44,8 @@ def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
     
     fill_amount = len(str(len(lines)))
     
+    extended_line_filler = f"\n{tab}{' ' * fill_amount}{C_NORMAL}| {colour}"
+    
     if len(lines) < print_last:
         print_last = -1
 
@@ -53,6 +57,8 @@ def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
         lines = lines[-print_last: ]
     
     for i, line in enumerate(lines):
+            if CLEAR_SCREEN_ANSI in line:
+                line = line.replace(CLEAR_SCREEN_ANSI, f"{extended_line_filler}[Clear console]{extended_line_filler}")
             print(f"{tab}{str(i + count_start).rjust(fill_amount)}| {colour}{line}{C_NORMAL}", end='')
 
 def runWithOutput(command, indentation, output_notice=False):
@@ -83,8 +89,8 @@ def runWithOutput(command, indentation, output_notice=False):
         if output_notice:
             print(f"{tab}--------------------")
     
-    os.remove(OUTPUT_FILE)
-    os.remove(ERROR_FILE)
+    #os.remove(OUTPUT_FILE)
+    #os.remove(ERROR_FILE)
     
     return result
 
