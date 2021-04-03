@@ -34,7 +34,9 @@ CLEAR_SCREEN_ANSI = "[1;1H[2J"
 
 def printUsage():
     print(f"Usage for {C_COMMAND}{sys.argv[0]}{C_NORMAL}:")
-    print(f"{S_TAB}{C_COMMAND}{sys.argv[0]} {C_NORMAL}-c [solvers to compile] -t [mazes to test] -a [extra args for tests]\n")
+    print(f"{S_TAB}{C_COMMAND}{sys.argv[0]} {C_NORMAL} [{C_ARGS}-s{C_NORMAL}] {C_ARGS}-c{C_NORMAL} [solvers to compile]"
+          f" {C_ARGS}-t{C_NORMAL} [mazes to test] {C_ARGS}-a{C_NORMAL} [extra args for tests]\n")
+    print(f"{S_TAB}{C_ARGS}-s{C_NORMAL}: Don't display program output while running (will still display after)")
     print(f"{S_TAB}Solvers: {C_ARGS}{SOLVER_ARGS}{C_NORMAL}")
     print(f"{S_TAB}Mazes: \"{C_STRING}all{C_NORMAL}\" for all default tests and/or a set of file paths")
     print(f"{S_TAB}Extra args for tests: these will be passed onto each tested program for every test")
@@ -62,14 +64,17 @@ def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
                 line = line.replace(CLEAR_SCREEN_ANSI, f"{extended_line_filler}[Clear console]{extended_line_filler}")
             print(f"{tab}{str(i + count_start).rjust(fill_amount)}| {colour}{line}{C_NORMAL}", end='')
 
-def runWithOutput(command, indentation, output_notice=False):
-    # Open a new terminal layer
-    # Thanks, https://stackoverflow.com/a/11024208/6335363
-    os.system("tput smcup")
-    # Run command, redirecting output to files
-    result = os.system(f"stdbuf --output=L {command} 2> {ERROR_FILE} | tee {OUTPUT_FILE}")
-    # Close that terminal layer
-    os.system("tput rmcup")
+def runWithOutput(command, indentation, output_notice=False, silent_run=False):
+    if not silent_run:
+        # Open a new terminal layer
+        # Thanks, https://stackoverflow.com/a/11024208/6335363
+        os.system("tput smcup")
+        # Run command, redirecting output to files
+        result = os.system(f"stdbuf --output=L {command} 2> {ERROR_FILE} | tee {OUTPUT_FILE}")
+        # Close that terminal layer
+        os.system("tput rmcup")
+    else:
+        result = os.system(f"{command} 2> {ERROR_FILE} > {OUTPUT_FILE}")
     
     # Generate indentation
     tab = S_TAB * indentation
@@ -106,7 +111,7 @@ def compile(args):
     for arg, command, prog in zip(SOLVER_ARGS, MAKE_COMMANDS, PROGRAM_NAMES):
         if arg in args:
             print(f"{S_TAB}{Fore.CYAN}{arg} {C_NORMAL}->{C_COMMAND} {command}{C_NORMAL}")
-            result = runWithOutput(command, 2)
+            result = runWithOutput(command, 2, silent_run=False)
             if result != 0:
                 print(f"{S_TAB}{C_ERROR}Compilation failed{C_NORMAL}")
             else:
@@ -117,7 +122,7 @@ def compile(args):
     
     return progs
 
-def test(args, test_progs, additional_args):
+def test(args, test_progs, additional_args, silent):
     print(f"Running tests...")
     args_to_run = args.copy()
     
@@ -139,7 +144,7 @@ def test(args, test_progs, additional_args):
                 continue
             
             # Run the test
-            result = runWithOutput(f"{prog} {arg} {additional_args}", 3, True)
+            result = runWithOutput(f"{prog} {arg} {additional_args}", 3, True, silent)
             
             if result != 0:
                 print(f"{tab}{C_ERROR}Program exited with error ({result}){C_NORMAL}")
@@ -150,11 +155,16 @@ def test(args, test_progs, additional_args):
         print("")
 
 if __name__ == "__main__":
+    
+    # Clear console (since otherwise it's easy to accidentally scroll weird)
+    print(CLEAR_SCREEN_ANSI)
+    
     # Extract args
     compile_args = []
     test_args = []
     additional_args = []
     to_append = None
+    silent = False
     for arg in sys.argv:
         if arg in ["-h", "help", "--help"]:
             print("Help:")
@@ -166,6 +176,8 @@ if __name__ == "__main__":
             to_append = test_args
         elif arg == "-a":
             to_append = additional_args
+        elif arg == "-s":
+            silent = True
         else:
             if to_append is None:
                 continue
@@ -179,4 +191,7 @@ if __name__ == "__main__":
     
     test_progs = compile(compile_args)
     
-    test(test_args, test_progs, " ".join(additional_args))
+    test(test_args, test_progs, " ".join(additional_args), silent)
+
+    print(f"{C_SUCCESS}All tests complete!{C_NORMAL}")
+    print("")
