@@ -34,9 +34,10 @@ CLEAR_SCREEN_ANSI = "[1;1H[2J"
 
 def printUsage():
     print(f"Usage for {C_COMMAND}{sys.argv[0]}{C_NORMAL}:")
-    print(f"{S_TAB}{C_COMMAND}{sys.argv[0]} {C_NORMAL}-c [solvers to compile] -t [mazes to test]\n")
+    print(f"{S_TAB}{C_COMMAND}{sys.argv[0]} {C_NORMAL}-c [solvers to compile] -t [mazes to test] -a [extra args for tests]\n")
     print(f"{S_TAB}Solvers: {C_ARGS}{SOLVER_ARGS}{C_NORMAL}")
     print(f"{S_TAB}Mazes: \"{C_STRING}all{C_NORMAL}\" for all default tests and/or a set of file paths")
+    print(f"{S_TAB}Extra args for tests: these will be passed onto each tested program for every test")
 
 def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
     # Print all lines in the file (unless print_last is specified, in which case
@@ -62,12 +63,11 @@ def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
             print(f"{tab}{str(i + count_start).rjust(fill_amount)}| {colour}{line}{C_NORMAL}", end='')
 
 def runWithOutput(command, indentation, output_notice=False):
-    
     # Open a new terminal layer
     # Thanks, https://stackoverflow.com/a/11024208/6335363
     os.system("tput smcup")
     # Run command, redirecting output to files
-    result = os.system(f"stdbuf --output=L {command} 2> {ERROR_FILE} 1| tee {OUTPUT_FILE}")
+    result = os.system(f"stdbuf --output=L {command} 2> {ERROR_FILE} | tee {OUTPUT_FILE}")
     # Close that terminal layer
     os.system("tput rmcup")
     
@@ -94,8 +94,8 @@ def runWithOutput(command, indentation, output_notice=False):
         if output_notice:
             print(f"{tab}--------------------")
     
-    #os.remove(OUTPUT_FILE)
-    #os.remove(ERROR_FILE)
+    os.remove(OUTPUT_FILE)
+    os.remove(ERROR_FILE)
     
     return result
 
@@ -117,9 +117,8 @@ def compile(args):
     
     return progs
 
-def test(args, test_progs):
+def test(args, test_progs, additional_args):
     print(f"Running tests...")
-    
     args_to_run = args.copy()
     
     for prog in test_progs:
@@ -140,7 +139,7 @@ def test(args, test_progs):
                 continue
             
             # Run the test
-            result = runWithOutput(f"{prog} {arg}", 3, True)
+            result = runWithOutput(f"{prog} {arg} {additional_args}", 3, True)
             
             if result != 0:
                 print(f"{tab}{C_ERROR}Program exited with error ({result}){C_NORMAL}")
@@ -154,6 +153,7 @@ if __name__ == "__main__":
     # Extract args
     compile_args = []
     test_args = []
+    additional_args = []
     to_append = None
     for arg in sys.argv:
         if arg in ["-h", "help", "--help"]:
@@ -164,6 +164,8 @@ if __name__ == "__main__":
             to_append = compile_args
         elif arg == "-t":
             to_append = test_args
+        elif arg == "-a":
+            to_append = additional_args
         else:
             if to_append is None:
                 continue
@@ -177,4 +179,4 @@ if __name__ == "__main__":
     
     test_progs = compile(compile_args)
     
-    test(test_args, test_progs)
+    test(test_args, test_progs, " ".join(additional_args))
