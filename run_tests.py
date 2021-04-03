@@ -15,6 +15,8 @@ PROGRAM_NAMES   = ["",          "./solveBfs",       "./solveDfs",       "./solve
 
 TEST_FILES = ["mazes/big-circle-1.txt", "mazes/big-circle-2.txt", "mazes/small-1.txt", "mazes/small-2.txt"]
 
+OUTPUT_CUTOFF = 50
+
 OUTPUT_FILE = "output.txt"
 ERROR_FILE = "output_err.txt"
 
@@ -34,10 +36,24 @@ def printUsage():
     print(f"{S_TAB}Solvers: {C_ARGS}{SOLVER_ARGS}{C_NORMAL}")
     print(f"{S_TAB}Mazes: \"{C_STRING}all{C_NORMAL}\" for all default tests and/or a set of file paths")
 
-def printLines(tab, lines, colour=C_OUTPUT):
-    # Print all lines in the file
+def printLines(tab, lines, colour=C_OUTPUT, print_last=-1):
+    # Print all lines in the file (unless print_last is specified, in which case
+    # print only the last n lines)
+    
+    fill_amount = len(str(len(lines)))
+    
+    if len(lines) < print_last:
+        print_last = -1
+
+    count_start = 1
+    if print_last != -1:
+        count_start += len(lines) - print_last
+    
+    if print_last != -1:
+        lines = lines[-print_last: ]
+    
     for i, line in enumerate(lines):
-            print(f"{tab}{str(i + 1).zfill(len(str(len(lines))))}| {colour}{line}{C_NORMAL}", end='')
+            print(f"{tab}{str(i + count_start).rjust(fill_amount)}| {colour}{line}{C_NORMAL}", end='')
 
 def runWithOutput(command, indentation, output_notice=False):
     
@@ -63,7 +79,7 @@ def runWithOutput(command, indentation, output_notice=False):
         if output_notice:
             print(f"{tab}Program output:")
             print(f"{tab}--------------------")
-        printLines(tab, lines)
+        printLines(tab, lines, print_last=OUTPUT_CUTOFF)
         if output_notice:
             print(f"{tab}--------------------")
     
