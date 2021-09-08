@@ -1,3 +1,7 @@
+# IMPORTANT
+
+This code has been merged into official COMP2521 starter code. As such this page is no-longer needed and has been archived.
+
 # Improved Lab7 Starter Code
 Drop in the file `Maze.c` to get [hugely improved performance](https://youtu.be/PxdtJ3SC1Ik) when testing code. Sadly, this is incompatible with the test script below.
 
